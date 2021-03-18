@@ -5,12 +5,14 @@ import lombok.SneakyThrows;
 import org.owasp.webgoat.assignments.AssignmentEndpoint;
 import org.owasp.webgoat.assignments.AttackResult;
 import org.owasp.webgoat.session.WebSession;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +31,10 @@ public class ProfileUploadBase extends AssignmentEndpoint {
         }
         if (StringUtils.isEmpty(fullName)) {
             return failed(this).feedback("path-traversal-profile-empty-name").build();
+        }
+
+        if (!fullName.matches("([A-Za-z_ \\-0-9áéíóúÁÉÍÓÚñÑ])*$")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid fullName.");
         }
 
         var uploadDirectory = new File(this.webGoatHomeDirectory, "/PathTraversal/" + webSession.getUserName());
